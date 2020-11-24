@@ -2,13 +2,12 @@ package com.starrtc.demo.demo.voip;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AlertDialog;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Chronometer;
@@ -38,29 +37,23 @@ import java.util.Set;
 public class VoipActivity extends BaseActivity implements View.OnClickListener {
 
     private XHVoipManager voipManager;
-
     private StarPlayer targetPlayer;
     private StarPlayer selfPlayer;
     private Chronometer timer;
-
     public static String ACTION = "ACTION";
     public static String RING = "RING";
     public static String CALLING = "CALLING";
     private String action;
     private String targetId;
     private Boolean isTalking = false;
-
     private StarRTCAudioManager starRTCAudioManager;
     private XHSDKHelper xhsdkHelper;
 
-    //test
-//    private PushYuvTest pushYuvTest;
-
+//    private PushUVCTest pushUVCTest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         starRTCAudioManager = StarRTCAudioManager.create(this.getApplicationContext());
         starRTCAudioManager.start(new StarRTCAudioManager.AudioManagerEvents() {
             @Override
@@ -68,25 +61,17 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                 MLOC.d("onAudioDeviceChanged ",selectedAudioDevice.name());
             }
         });
-
-
-
+        starRTCAudioManager.setDefaultAudioDevice(StarRTCAudioManager.AudioDevice.SPEAKER_PHONE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN ,
                 WindowManager.LayoutParams. FLAG_FULLSCREEN);
         setContentView(R.layout.activity_voip);
         voipManager = XHClient.getInstance().getVoipManager();
         voipManager.setRecorder(new XHCameraRecorder());
-//        XHCustomRecorder customRecorder = new XHCustomRecorder(640,480,270,true);
-//        pushYuvTest = new PushYuvTest(customRecorder);
-//        voipManager.setRecorder(customRecorder);
-
         voipManager.setRtcMediaType(XHConstants.XHRtcMediaTypeEnum.STAR_RTC_MEDIA_TYPE_VIDEO_AND_AUDIO);
         addListener();
-
         targetId = getIntent().getStringExtra("targetId");
         action = getIntent().getStringExtra(ACTION);
-
         targetPlayer = (StarPlayer) findViewById(R.id.voip_surface_target);
         selfPlayer = (StarPlayer) findViewById(R.id.voip_surface_self);
         selfPlayer.setZOrderMediaOverlay(true);
@@ -100,9 +85,14 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
             }
         });
 
+//        final XHCustomRecorder recorder = new XHCustomRecorder(480,480,0,false);
+//        voipManager.setRecorder(recorder);
+//        pushUVCTest = new PushUVCTest(recorder);
+//        pushUVCTest.startRecoder();
+
+
         ((TextView)findViewById(R.id.targetid_text)).setText(targetId);
         ((ImageView)findViewById(R.id.head_img)).setImageResource(MLOC.getHeadImage(VoipActivity.this,targetId));
-
         findViewById(R.id.calling_hangup).setOnClickListener(this);
         findViewById(R.id.talking_hangup).setOnClickListener(this);
         findViewById(R.id.switch_camera).setOnClickListener(new View.OnClickListener() {
@@ -112,18 +102,16 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
             }
         });
         findViewById(R.id.screen_btn).setOnClickListener(this);
-
         findViewById(R.id.mic_btn).setSelected(true);
         findViewById(R.id.mic_btn).setOnClickListener(this);
         findViewById(R.id.camera_btn).setSelected(true);
         findViewById(R.id.camera_btn).setOnClickListener(this);
-
-
+        findViewById(R.id.speaker_on_btn).setOnClickListener(this);
+        findViewById(R.id.speaker_off_btn).setOnClickListener(this);
 
         if(action.equals(CALLING)){
             showCallingView();
             MLOC.d("newVoip","call");
-
             xhsdkHelper = new XHSDKHelper();
             xhsdkHelper.setDefaultCameraId(1);
             xhsdkHelper.startPerview(this,((StarPlayer)findViewById(R.id.voip_surface_target)));
@@ -132,13 +120,8 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                 @Override
                 public void success(Object data) {
                     xhsdkHelper.stopPerview();
-//                    StarCameraConfig cameraConfig = new StarCameraConfig();
-//                    cameraConfig.previewW = StarRtcCore.cameraPreviewW;
-//                    cameraConfig.previewH = StarRtcCore.cameraPreviewH;
-//                    cameraConfig.frameRate = StarRtcCore.cameraPreviewFramrate;
-//                    cameraConfig.uploadGap = 1000/StarRtcCore.fpsBig;
-//                    pushYuvTest.initCamera(VoipActivity.this,cameraConfig,true);
-                    MLOC.d("newVoip","call success");
+                    xhsdkHelper = null;
+                    MLOC.d("newVoip","call success! RecSessionId:"+data);
                 }
                 @Override
                 public void failed(String errMsg) {
@@ -146,8 +129,6 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                     stopAndFinish();
                 }
             });
-
-
         }else{
             MLOC.d("newVoip","onPickup");
             onPickup();
@@ -156,7 +137,6 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
 
     private void setupViews(){
         voipManager.setupView(selfPlayer, targetPlayer, new IXHResultCallback() {
-            //        voipManager.setupView(this,null, targetPlayer, new IXHResultCallback() {
             @Override
             public void success(Object data) {
                 MLOC.d("newVoip","setupView success");
@@ -258,11 +238,19 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
             case AEvent.AEVENT_VOIP_REV_BUSY:
                 MLOC.d("","对方线路忙");
                 MLOC.showMsg(VoipActivity.this,"对方线路忙");
+                if(xhsdkHelper!=null){
+                    xhsdkHelper.stopPerview();
+                    xhsdkHelper = null;
+                }
                 stopAndFinish();
                 break;
             case AEvent.AEVENT_VOIP_REV_REFUSED:
                 MLOC.d("","对方拒绝通话");
                 MLOC.showMsg(VoipActivity.this,"对方拒绝通话");
+                if(xhsdkHelper!=null){
+                    xhsdkHelper.stopPerview();
+                    xhsdkHelper = null;
+                }
                 stopAndFinish();
                 break;
             case AEvent.AEVENT_VOIP_REV_HANGUP:
@@ -277,6 +265,10 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                 break;
             case AEvent.AEVENT_VOIP_REV_ERROR:
                 MLOC.d("",(String) eventObj);
+                if(xhsdkHelper!=null){
+                    xhsdkHelper.stopPerview();
+                    xhsdkHelper = null;
+                }
                 stopAndFinish();
                 break;
             case AEvent.AEVENT_VOIP_TRANS_STATE_CHANGED:
@@ -304,7 +296,7 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
         voipManager.accept(this,targetId, new IXHResultCallback() {
             @Override
             public void success(Object data) {
-                MLOC.d("newVoip","onPickup OK ");
+                MLOC.d("newVoip","onPickup OK! RecSessionId:"+data);
             }
             @Override
             public void failed(String errMsg) {
@@ -332,6 +324,7 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                 });
                 if(xhsdkHelper!=null){
                     xhsdkHelper.stopPerview();
+                    xhsdkHelper = null;
                 }
                 break;
             case R.id.talking_hangup:
@@ -348,7 +341,7 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                 });
                 break;
             case R.id.screen_btn:
-                if(!XHCustomConfig.getInstance().getHardwareEnable()){
+                if(!XHCustomConfig.getInstance(this).getHardwareEnable()){
                     MLOC.showMsg(this,"需要打开硬编模式");
                     return;
                 }
@@ -386,6 +379,18 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
                     voipManager.setAudioEnable(true);
                 }
                 break;
+            case R.id.speaker_on_btn:
+//                starRTCAudioManager.selectAudioDevice(StarRTCAudioManager.AudioDevice.SPEAKER_PHONE);
+                starRTCAudioManager.setSpeakerphoneOn(true);
+                findViewById(R.id.speaker_on_btn).setSelected(true);
+                findViewById(R.id.speaker_off_btn).setSelected(false);
+                break;
+            case R.id.speaker_off_btn:
+//                starRTCAudioManager.selectAudioDevice(StarRTCAudioManager.AudioDevice.EARPIECE);
+                starRTCAudioManager.setSpeakerphoneOn(false);
+                findViewById(R.id.speaker_on_btn).setSelected(false);
+                findViewById(R.id.speaker_off_btn).setSelected(true);
+                break;
         }
     }
 
@@ -404,7 +409,6 @@ public class VoipActivity extends BaseActivity implements View.OnClickListener {
         if(starRTCAudioManager !=null){
             starRTCAudioManager.stop();
         }
-//        pushYuvTest.stopCamera();
         VoipActivity.this.finish();
     }
 

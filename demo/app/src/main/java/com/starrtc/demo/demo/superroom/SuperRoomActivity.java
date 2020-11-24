@@ -145,7 +145,7 @@ public class SuperRoomActivity extends BaseActivity {
 
         addListener();
         vRoomId = (TextView) findViewById(R.id.live_id_text);
-        vRoomId.setText("超级聊天室名称："+ liveName);
+        vRoomId.setText("房间名称："+ liveName);
 
         vOnlineNum = findViewById(R.id.online_text);
         vOnlineNum.setText(onLineUserNumber+" 人在线");
@@ -215,20 +215,16 @@ public class SuperRoomActivity extends BaseActivity {
                 if(lastAction!=event.getAction()){
                     switch (event.getAction()){
                         case MotionEvent.ACTION_DOWN:
-                            MLOC.d("TEST","+=++++++++++++++++++++++++++++++++");
-                            MLOC.d("TEST","+=++++++++++++++++++++++++++++++++");
-                            MLOC.d("TEST","+=++++++++++++++++++++++++++++++++");
-                            MLOC.d("TEST","+=++++++++++++++++++++++++++++++++");
                             vPushBtn.setSelected(true);
                             superRoomManager.pickUpMic(new IXHResultCallback() {
                                 @Override
                                 public void success(Object data) {
-                                    MLOC.showMsg(SuperRoomActivity.this,"可以发言了");
+//                                    MLOC.showMsg(SuperRoomActivity.this,"可以发言了");
                                 }
 
                                 @Override
                                 public void failed(String errMsg) {
-                                    MLOC.showMsg(SuperRoomActivity.this,"发言failed");
+//                                    MLOC.showMsg(SuperRoomActivity.this,"发言failed");
                                 }
                             });
                             break;
@@ -238,12 +234,12 @@ public class SuperRoomActivity extends BaseActivity {
                             superRoomManager.layDownMic(new IXHResultCallback() {
                                 @Override
                                 public void success(Object data) {
-                                    MLOC.showMsg(SuperRoomActivity.this,"已经交出发言权限");
+//                                    MLOC.showMsg(SuperRoomActivity.this,"已经交出发言权限");
                                 }
 
                                 @Override
                                 public void failed(String errMsg) {
-                                    MLOC.showMsg(SuperRoomActivity.this,"交出发言权限failed");
+//                                    MLOC.showMsg(SuperRoomActivity.this,"交出发言权限failed");
                                 }
                             });
                             break;
@@ -263,7 +259,7 @@ public class SuperRoomActivity extends BaseActivity {
             if(liveId==null){
                 createNewLive();
             }else {
-               joinLive();
+                joinLive();
             }
         }else{
             joinLive();
@@ -360,18 +356,6 @@ public class SuperRoomActivity extends BaseActivity {
         MLOC.canPickupVoip = true;
     }
 
-    @Override
-    public void onRestart(){
-        super.onRestart();
-        addListener();
-    }
-
-    @Override
-    public void onStop(){
-        removeListener();
-        super.onStop();
-    }
-
     private void removeListener(){
         AEvent.removeListener(AEvent.AEVENT_SUPER_ROOM_ERROR,this);
         AEvent.removeListener(AEvent.AEVENT_SUPER_ROOM_ADD_UPLOADER,this);
@@ -396,25 +380,10 @@ public class SuperRoomActivity extends BaseActivity {
                 }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
-                        stop();
+                        stopAndFinish();
                     }
                 }
         ).show();
-    }
-
-    private void stop(){
-        superRoomManager.leaveSuperRoom(new IXHResultCallback() {
-            @Override
-            public void success(Object data) {
-                stopAndFinish();
-            }
-
-            @Override
-            public void failed(final String errMsg) {
-                MLOC.showMsg(SuperRoomActivity.this,errMsg);
-                stopAndFinish();
-            }
-        });
     }
 
     private void addPlayer(String addUserID){
@@ -514,11 +483,24 @@ public class SuperRoomActivity extends BaseActivity {
                 break;
             case AEvent.AEVENT_SUPER_ROOM_ERROR:
                 String errStr = (String) eventObj;
-                if(errStr.equals("30016")){
-                    errStr = "直播关闭";
-                }
                 MLOC.showMsg(getApplicationContext(),errStr);
-                stopAndFinish();
+                if(errStr.equals("ERROR_VDN_DISCONNECTED")){
+                    superRoomManager.leaveSuperRoom(new IXHResultCallback() {
+                        @Override
+                        public void success(Object data) {
+                            MLOC.d("SuperRoomActivity","leaveSuperRoom  success");
+                            joinLive();
+                        }
+                        @Override
+                        public void failed(String errMsg) {
+                            MLOC.d("SuperRoomActivity","leaveSuperRoom  failed");
+                        }
+                    });
+                }else if(errStr.equals("ERROR_SRC_DISCONNECTED")){
+
+                }else {
+                    stopAndFinish();
+                }
                 break;
             case AEvent.AEVENT_SUPER_ROOM_SELF_COMMANDED_TO_STOP:
                 vAudioBtn.setVisibility(View.GONE);
@@ -585,10 +567,12 @@ public class SuperRoomActivity extends BaseActivity {
             AlertDialog.Builder builder=new AlertDialog.Builder(this);
             if(createrId.equals(MLOC.userId)){
                 Boolean ac = false;
-                for(int i = 0 ;i<mPlayerList.size();i++){
-                    if(userId.equals(mPlayerList.get(i))){
-                        ac = true;
-                        break;
+                if(mPlayerList!=null){
+                    for(int i = 0 ;i<mPlayerList.size();i++){
+                        if(userId.equals(mPlayerList.get(i))){
+                            ac = true;
+                            break;
+                        }
                     }
                 }
                 if(ac){
@@ -599,7 +583,7 @@ public class SuperRoomActivity extends BaseActivity {
                             if(i==0){
                                 kickUser(userId);
                             }else if(i==1){
-                               muteUser(userId,60);
+                                muteUser(userId,60);
                             }else if(i==2){
                                 mPrivateMsgTargetId = userId;
                                 vEditText.setText("[私"+userId+"]");
@@ -650,11 +634,13 @@ public class SuperRoomActivity extends BaseActivity {
             @Override
             public void success(Object data) {
                 //踢人成功
+                MLOC.showMsg(SuperRoomActivity.this,"踢人成功");
             }
 
             @Override
             public void failed(String errMsg) {
                 //踢人失败
+                MLOC.showMsg(SuperRoomActivity.this,"踢人失败");
             }
         });
     }
@@ -663,11 +649,13 @@ public class SuperRoomActivity extends BaseActivity {
             @Override
             public void success(Object data) {
                 //禁言成功
+                MLOC.showMsg(SuperRoomActivity.this,"禁言成功");
             }
 
             @Override
             public void failed(String errMsg) {
                 //禁言失败
+                MLOC.showMsg(SuperRoomActivity.this,"禁言失败");
             }
         });
     }
@@ -678,14 +666,14 @@ public class SuperRoomActivity extends BaseActivity {
             @Override
             public void success(Object data) {
                 MLOC.d("SuperRoomActivity","leaveSuperRoom  success");
+                finish();
             }
-
             @Override
             public void failed(String errMsg) {
                 MLOC.d("SuperRoomActivity","leaveSuperRoom  failed");
+                finish();
             }
         });
         removeListener();
-        finish();
     }
 }

@@ -14,7 +14,7 @@ public class XHLiveManagerListener implements IXHLiveManagerListener {
     public void onActorJoined(String liveID, String actorID) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("liveID",liveID);
+            jsonObject.put("id",liveID);
             jsonObject.put("actorID",actorID);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -26,7 +26,7 @@ public class XHLiveManagerListener implements IXHLiveManagerListener {
     public void onActorLeft(String liveID, String actorID) {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("liveID",liveID);
+            jsonObject.put("id",liveID);
             jsonObject.put("actorID",actorID);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -102,7 +102,10 @@ public class XHLiveManagerListener implements IXHLiveManagerListener {
             e.printStackTrace();
 
         }
+    }
 
-
+    @Override
+    public void onPushStreamError(String err) {
+        AEvent.notifyListener(AEvent.AEVENT_LIVE_PUSH_STREAM_ERROR,true,err);
     }
 }

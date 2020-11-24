@@ -31,6 +31,7 @@ import com.starrtc.starrtcsdk.api.XHLiveManager;
 import com.starrtc.starrtcsdk.apiInterface.IXHResultCallback;
 import com.starrtc.starrtcsdk.core.audio.StarRTCAudioManager;
 import com.starrtc.starrtcsdk.core.im.message.XHIMMessage;
+import com.starrtc.starrtcsdk.core.pusher.XHCameraRecorder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -135,6 +136,7 @@ public class AudioLiveActivity extends BaseActivity {
 
         liveManager = XHClient.getInstance().getLiveManager(this);
         liveManager.setRtcMediaType(XHConstants.XHRtcMediaTypeEnum.STAR_RTC_MEDIA_TYPE_AUDIO_ONLY);
+        liveManager.setRecorder(new XHCameraRecorder());
         liveManager.addListener(new XHLiveManagerListener());
 
 
@@ -208,7 +210,17 @@ public class AudioLiveActivity extends BaseActivity {
                                 @Override
                                 public void onClick(DialogInterface arg0, int arg1) {
                                     isUploader = false;
-                                    liveManager.changeToAudience();
+                                    liveManager.changeToAudience(new IXHResultCallback() {
+                                        @Override
+                                        public void success(Object data) {
+
+                                        }
+
+                                        @Override
+                                        public void failed(String errMsg) {
+
+                                        }
+                                    });
                                     vLinkBtn.setText("上麦");
                                     vAudioBtn.setVisibility(View.GONE);
                                     findViewById(R.id.audio_container).setVisibility(View.GONE);
@@ -572,7 +584,17 @@ public class AudioLiveActivity extends BaseActivity {
             case AEvent.AEVENT_LIVE_APPLY_LINK_RESULT:
                 if(((XHConstants.XHLiveJoinResult)eventObj)== XHConstants.XHLiveJoinResult.XHLiveJoinResult_accept){
                     isUploader = true;
-                    liveManager.changeToBroadcaster();
+                    liveManager.changeToBroadcaster(new IXHResultCallback() {
+                        @Override
+                        public void success(Object data) {
+
+                        }
+
+                        @Override
+                        public void failed(String errMsg) {
+
+                        }
+                    });
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

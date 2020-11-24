@@ -298,7 +298,17 @@ public class MiniClassActivity extends BaseActivity{
                                 @Override
                                 public void onClick(DialogInterface arg0, int arg1) {
                                     isUploader = false;
-                                    classManager.changeToAudience();
+                                    classManager.changeToAudience(new IXHResultCallback() {
+                                        @Override
+                                        public void success(Object data) {
+
+                                        }
+
+                                        @Override
+                                        public void failed(String errMsg) {
+
+                                        }
+                                    });
                                     vLinkBtn.setText("互动");
                                     vPaintPlayer.pause();
                                     vCameraBtn.setVisibility(View.GONE);
@@ -428,7 +438,7 @@ public class MiniClassActivity extends BaseActivity{
     private void startClass(){
         isUploader = true;
         //开始直播
-        vPaintPlayer.publish(MLOC.userId);
+        vPaintPlayer.publish(classManager,MLOC.userId);
         classManager.startLive(classId, new IXHResultCallback() {
             @Override
             public void success(Object data) {
@@ -587,7 +597,7 @@ public class MiniClassActivity extends BaseActivity{
 
     private String decodeMiniClassMsgContentData(String txt){
 //        {
-//                type: _type,
+//                listType: _type,
 //                from: _from,
 //                fromAvatar: _fromAvatar,
 //                fromNick: _fromNick,
@@ -603,15 +613,13 @@ public class MiniClassActivity extends BaseActivity{
             e.printStackTrace();
             return txt;
         }
-
-
     }
 
     private void sendChatMsg(String msg){
         MLOC.d("XHLiveManager","sendChatMsg "+msg);
 
 //        {
-//                type: _type,
+//                listType: _type,
 //                from: _from,
 //                fromAvatar: _fromAvatar,
 //                fromNick: _fromNick,
@@ -619,7 +627,7 @@ public class MiniClassActivity extends BaseActivity{
 //        }
         String msgTxt = msg;
         try {JSONObject jsonObject = new JSONObject();
-            jsonObject.put("type","text");
+            jsonObject.put("listType","text");
             jsonObject.put("from",MLOC.userId);
             jsonObject.put("fromAvatar","");
             jsonObject.put("fromNick",MLOC.userId);
@@ -746,7 +754,6 @@ public class MiniClassActivity extends BaseActivity{
                         byte[] tData = (byte[]) jsonObject.get("data");
                         String tUpid = jsonObject.getString("upId");
                         vPaintPlayer.setPaintData(tData,tUpid);
-
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -771,8 +778,18 @@ public class MiniClassActivity extends BaseActivity{
                 break;
             case AEvent.AEVENT_LIVE_APPLY_LINK_RESULT:
                 isUploader = true;
-                classManager.changeToBroadcaster();
-                vPaintPlayer.publish(MLOC.userId);
+                classManager.changeToBroadcaster(new IXHResultCallback() {
+                    @Override
+                    public void success(Object data) {
+
+                    }
+
+                    @Override
+                    public void failed(String errMsg) {
+
+                    }
+                });
+                vPaintPlayer.publish(classManager,MLOC.userId);
                 vLinkBtn.setText("停止");
                 vCameraBtn.setVisibility(View.VISIBLE);
                 vMicBtn.setVisibility(View.VISIBLE);

@@ -34,12 +34,13 @@ public class MLOC {
     public static Context appContext;
     public static String userId = "";
 
-    public static String VOIP_SERVER_URL          = "test.starrtc.com:10086";
-    public static String IM_SERVER_URL            = "test.starrtc.com:19903";
-    public static String CHATROOM_SERVER_URL      = "test.starrtc.com:19906";
-    public static String LIVE_VDN_SERVER_URL      = "test.starrtc.com:19928";
-    public static String LIVE_SRC_SERVER_URL      = "test.starrtc.com:19931";
-    public static String LIVE_PROXY_SERVER_URL    = "test.starrtc.com:19932";
+    public static String SERVER_HOST                = "demo.starrtc.com";
+    public static String VOIP_SERVER_URL            = SERVER_HOST+":10086";
+    public static String IM_SERVER_URL              = SERVER_HOST+":19903";
+    public static String CHATROOM_SERVER_URL        = SERVER_HOST+":19906";
+    public static String LIVE_VDN_SERVER_URL        = SERVER_HOST+":19928";
+    public static String LIVE_SRC_SERVER_URL        = SERVER_HOST+":19931";
+    public static String LIVE_PROXY_SERVER_URL      = SERVER_HOST+":19932";
 
     public static Boolean AEventCenterEnable = false;
 
@@ -305,12 +306,12 @@ public class MLOC {
     static TimerTask timerTask;
     public static void showDialog(final Context context, final JSONObject data){
         try {
-            final int type = data.getInt("type");// 0:c2c,1:group,2:voip
+            final int type = data.getInt("listType");// 0:c2c,1:group,2:voip
             final String farId = data.getString("farId");// 对方ID
             String msg = data.getString("msg");// 提示消息
 
             if(dialogs[0]==null||dialogs[0].isShowing()==false){
-                dialogs[0] = new Dialog(context.getApplicationContext(), R.style.dialog_notify);
+                dialogs[0] = new Dialog(context, R.style.dialog_notify);
                 dialogs[0].setContentView(R.layout.dialog_new_msg);
                 Window win = dialogs[0].getWindow();
                 win.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
@@ -330,15 +331,15 @@ public class MLOC {
                     }
                     dialogs[0].dismiss();
                     dialogs[0] = null;
-//                    if(type==0){
+//                    if(listType==0){
 //                        //C2C
 //                        Intent intent = new Intent(context,C2CListActivity.class);
 //                        context.startActivity(intent);
-//                    }else if(type==1){
+//                    }else if(listType==1){
 //                        //Group
 //                        Intent intent = new Intent(context, MessageGroupListActivity.class);
 //                        context.startActivity(intent);
-//                    }else if(type==2){
+//                    }else if(listType==2){
 //                        //VOIP
 //                        Intent intent = new Intent(context, VoipListActivity.class);
 //                        context.startActivity(intent);

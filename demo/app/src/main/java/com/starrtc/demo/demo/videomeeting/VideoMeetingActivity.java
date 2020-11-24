@@ -136,6 +136,35 @@ public class VideoMeetingActivity extends BaseActivity{
                 meetingManager.switchCamera();
             }
         });
+
+        findViewById(R.id.mic_btn).setSelected(true);
+        findViewById(R.id.camera_btn).setSelected(true);
+        findViewById(R.id.camera_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(findViewById(R.id.camera_btn).isSelected()){
+                    findViewById(R.id.camera_btn).setSelected(false);
+                    meetingManager.setVideoEnable(false);
+                }else{
+                    findViewById(R.id.camera_btn).setSelected(true);
+                    meetingManager.setVideoEnable(true);
+                }
+            }
+        });
+
+        findViewById(R.id.mic_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(findViewById(R.id.mic_btn).isSelected()){
+                    findViewById(R.id.mic_btn).setSelected(false);
+                    meetingManager.setAudioEnable(false);
+                }else{
+                    findViewById(R.id.mic_btn).setSelected(true);
+                    meetingManager.setAudioEnable(true);
+                }
+            }
+        });
+
         init();
     }
 
@@ -143,7 +172,7 @@ public class VideoMeetingActivity extends BaseActivity{
         final Dialog dialog = new Dialog(this,R.style.dialog_popup);
         dialog.setContentView(R.layout.dialog_input_rtmp_url);
         ((EditText)dialog.findViewById(R.id.rtmpurl)).setText("rtmp://");
-        ((EditText)dialog.findViewById(R.id.rtmpurl)).setText("rtmp://123.103.93.74/live/starrtc");
+        ((EditText)dialog.findViewById(R.id.rtmpurl)).setText("rtmp://14.23.79.210:1935/live/demo.1573715762042");
         Window win = dialog.getWindow();
         win.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
         win.setGravity(Gravity.CENTER);
@@ -289,6 +318,7 @@ public class VideoMeetingActivity extends BaseActivity{
         AEvent.addListener(AEvent.AEVENT_MEETING_SELF_BANNED,this);
         AEvent.addListener(AEvent.AEVENT_MEETING_REV_MSG,this);
         AEvent.addListener(AEvent.AEVENT_MEETING_REV_PRIVATE_MSG,this);
+        AEvent.addListener(AEvent.AEVENT_MEETING_PUSH_STREAM_ERROR,this);
     }
     public void removeListener(){
         AEvent.removeListener(AEvent.AEVENT_MEETING_ADD_UPLOADER,this);
@@ -299,6 +329,7 @@ public class VideoMeetingActivity extends BaseActivity{
         AEvent.removeListener(AEvent.AEVENT_MEETING_SELF_BANNED,this);
         AEvent.removeListener(AEvent.AEVENT_MEETING_REV_MSG,this);
         AEvent.removeListener(AEvent.AEVENT_MEETING_REV_PRIVATE_MSG,this);
+        AEvent.removeListener(AEvent.AEVENT_MEETING_PUSH_STREAM_ERROR,this);
     }
 
     @Override
@@ -412,7 +443,7 @@ public class VideoMeetingActivity extends BaseActivity{
         final float mainEndX = clickPlayer.getX();
         final float mainEndY = clickPlayer.getY();
 
-        if(XHCustomConfig.getInstance().getOpenGLESEnable()){
+        if(XHCustomConfig.getInstance(this).getOpenGLESEnable()){
             clickPlayer.setX(clickEndX);
             clickPlayer.setY(clickEndY);
             clickPlayer.getLayoutParams().width = (int) clickEndW;
@@ -646,6 +677,9 @@ public class VideoMeetingActivity extends BaseActivity{
             case AEvent.AEVENT_MEETING_REV_MSG:
                 break;
             case AEvent.AEVENT_MEETING_REV_PRIVATE_MSG:
+                break;
+            case AEvent.AEVENT_MEETING_PUSH_STREAM_ERROR:
+                MLOC.showMsg(VideoMeetingActivity.this,"推流失败");
                 break;
         }
     }

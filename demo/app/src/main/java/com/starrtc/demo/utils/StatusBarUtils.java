@@ -5,9 +5,9 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -76,7 +76,7 @@ public class StatusBarUtils {
      * 是否是最外层布局为 DrawerLayout 的侧滑菜单
      *
      * @param drawerLayout 是否最外层布局为 DrawerLayout
-     * @param contentId    内容视图的 id
+     * @param contentId    内容视图的 liveId
      * @return
      */
     public StatusBarUtils setDrawerLayoutContentId(boolean drawerLayout, int contentId) {

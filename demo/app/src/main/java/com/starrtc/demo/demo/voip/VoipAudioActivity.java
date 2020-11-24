@@ -4,7 +4,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Chronometer;
@@ -78,6 +78,7 @@ public class VoipAudioActivity extends BaseActivity implements View.OnClickListe
         findViewById(R.id.hangup).setOnClickListener(this);
 
         if(action.equals(CALLING)){
+            showCallingView();
             MLOC.d("newVoip","call");
             voipManager.audioCall(this,targetId, new IXHResultCallback() {
                 @Override
@@ -110,9 +111,6 @@ public class VoipAudioActivity extends BaseActivity implements View.OnClickListe
                 stopAndFinish();
             }
         });
-        if(action.equals(CALLING)){
-            showCallingView();
-        }
     }
 
     public void addListener(){
@@ -225,11 +223,13 @@ public class VoipAudioActivity extends BaseActivity implements View.OnClickListe
     }
 
     private void showCallingView(){
+        MLOC.d("","showCallingView");
         findViewById(R.id.calling_txt).setVisibility(View.VISIBLE);
         findViewById(R.id.timer).setVisibility(View.INVISIBLE);
     }
 
     private void showTalkingView(){
+        MLOC.d("","showTalkingView");
         findViewById(R.id.calling_txt).setVisibility(View.INVISIBLE);
         findViewById(R.id.timer).setVisibility(View.VISIBLE);
         timer.setBase(SystemClock.elapsedRealtime());
